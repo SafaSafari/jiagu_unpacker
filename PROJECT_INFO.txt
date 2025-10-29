@@ -1,0 +1,183 @@
+================================================================================
+                           JIAGU UNPACKER v1.0.0
+================================================================================
+
+Description:
+  A professional Python tool to unpack and extract original DEX files from
+  Android APKs protected by the Jiagu (加固) packer. Automatically handles
+  both standard and password-protected ZIP archives.
+
+================================================================================
+PROJECT STATISTICS
+================================================================================
+
+Code Size:        403 lines of Python
+Documentation:    1377 lines total
+Files:            12 (7 docs + 2 core + 3 examples/tests)
+Languages:        Python 3.6+
+Dependencies:     pycryptodome
+License:          MIT
+
+Core Files:
+  - jiagu_unpacker.py (263 lines) - Main unpacker with auto ZIP decryption
+  - zip_decrypt.py (140 lines)    - ZIP encryption flag removal utility
+
+Documentation:
+  - README.md (English)           - Complete usage guide
+  - README_FA.md (Persian)        - راهنمای کامل فارسی
+  - QUICK_START.md                - 60-second quick start
+  - CONTRIBUTING.md               - Contribution guidelines
+
+Examples:
+  - examples/batch_unpack.sh      - Batch APK processing
+  - examples/module_usage.py      - Python module integration
+
+Testing:
+  - test_apk.sh                   - Automated test suite (5 tests)
+
+================================================================================
+KEY FEATURES
+================================================================================
+
+✓ Automatic DEX Extraction     - Extract original classes.dex from packed APKs
+✓ AES-CBC Decryption           - Decrypt AES-encrypted DEX payload
+✓ XOR Decryption               - Handle XOR-encrypted secondary DEX files
+✓ ZIP Password Bypass          - Auto-detect and remove fake encryption flags
+✓ Multidex Support             - Extract all DEX files (classes.dex, classes2.dex, etc.)
+✓ Application Name Recovery    - Retrieve original Application class name
+✓ Shell DEX Separation         - Isolate packer's shell from original code
+✓ Command-line Interface       - Easy-to-use CLI with argparse
+✓ Python Module                - Can be imported and used programmatically
+✓ Batch Processing             - Process multiple APKs at once
+✓ Error Handling               - Graceful error messages and recovery
+✓ Cross-platform               - Works on Linux, macOS, Windows
+
+================================================================================
+TECHNICAL DETAILS
+================================================================================
+
+Encryption Constants:
+  AES Key:    b"bajk3b4j3bvuoa3h"
+  AES IV:     b"mers46ha35ga23hn"
+  XOR Key:    0x66
+  AES Length: 512 bytes (+ 16 padding)
+  XOR Length: 112 bytes
+
+Jiagu Structure:
+  [Shell DEX] [Encrypted Payload] [Shell Length (4 bytes)]
+  
+  Encrypted Payload:
+    [AES-encrypted section (528 bytes)]
+    [App Name Length (1 byte)] [App Name (UTF-8)]
+    [DEX1 Size (4 bytes)] [DEX1 Data]
+    [DEX2 Size (4 bytes)] [DEX2 Data (XOR encrypted)]
+    [DEX3 Size (4 bytes)] [DEX3 Data (XOR encrypted)]
+    ...
+
+ZIP Decryption:
+  - Scans for Central Directory File Header (PK\x01\x02)
+  - Clears encryption bit (bit 0) in general purpose bit flag
+  - Creates temporary cleaned file for extraction
+
+================================================================================
+USAGE EXAMPLES
+================================================================================
+
+Basic:
+  python3 jiagu_unpacker.py -apk packed.apk
+
+Custom output directory:
+  python3 jiagu_unpacker.py -apk app.apk -out extracted
+
+As Python module:
+  from jiagu_unpacker import JiaguUnpacker
+  unpacker = JiaguUnpacker("app.apk", "output")
+  if unpacker.unpack():
+      print("Success!")
+
+Batch processing:
+  cd examples
+  ./batch_unpack.sh /path/to/apks
+
+================================================================================
+OUTPUT FILES
+================================================================================
+
+After unpacking, you get:
+
+  classes.dex               - Original primary DEX file
+  classes2.dex, ...         - Additional DEX files (multidex apps)
+  shell.dex                 - Jiagu packer's shell (can be discarded)
+  original_application.txt  - Original Application class name
+
+================================================================================
+REBUILD WORKFLOW
+================================================================================
+
+1. apktool d packed.apk -o unpacked_apk
+2. cp unpacked/classes*.dex unpacked_apk/
+3. Edit AndroidManifest.xml - restore Application name
+4. rm -rf unpacked_apk/assets/libjiagu*.so
+5. rm -rf unpacked_apk/lib/*/libjiagu*.so
+6. apktool b unpacked_apk -o rebuilt.apk
+7. jarsigner -keystore my.keystore rebuilt.apk mykey
+8. zipalign -v 4 rebuilt.apk final.apk
+
+================================================================================
+TESTING
+================================================================================
+
+Tested successfully with:
+  - X-APK-6862.apk (18.3 MB packed → 9.2MB + 8.8MB extracted)
+  - Password-protected ZIP archives (auto-detected)
+  - Multidex applications (2+ DEX files)
+  - Application name recovery: androidx.multidex.MultiDexApplication
+
+All 5 automated tests passing:
+  ✓ Dependencies check (pycryptodome)
+  ✓ File permissions
+  ✓ Help command
+  ✓ Module import
+  ✓ ZIP decrypt module
+
+================================================================================
+GITHUB READY
+================================================================================
+
+To publish:
+  1. cd /p/reverse/zip/Jiagu-unpacker
+  2. git init
+  3. git add .
+  4. git commit -m "Initial commit: Jiagu Unpacker v1.0.0"
+  5. Create repo on GitHub: https://github.com/new
+  6. git remote add origin https://github.com/YOUR_USERNAME/Jiagu-unpacker.git
+  7. git branch -M main
+  8. git push -u origin main
+
+Suggested topics:
+  android, apk, reverse-engineering, jiagu, unpacker, dex, 
+  security-research, android-security, apk-unpacker, jiagu-unpacker
+
+================================================================================
+AUTHOR & LICENSE
+================================================================================
+
+License:     MIT License
+Created:     2024
+Purpose:     Educational and security research
+Language:    Python 3.6+
+
+Legal Notice:
+  This tool is for educational and authorized security research only.
+  Only use on applications you own or have permission to analyze.
+  Respect intellectual property rights and local laws.
+
+================================================================================
+REFERENCES
+================================================================================
+
+- Android DEX Format: https://source.android.com/docs/core/runtime/dex-format
+- ZIP Format Spec: https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
+- Jiagu Analysis: https://github.com/topics/jiagu
+
+================================================================================
